@@ -13,6 +13,8 @@ import { authMiddleware } from './middlewares/auth.js';
 import { checkPermission } from './middlewares/permissionCheck.js';
 import routeIngredient from './routes/routerIngredient.js';
 import routerSize from './routes/routerSize.js';
+import orderRouter from './routes/routeOrder.js';
+
 
 const app = express();
 dotenv.config();
@@ -32,6 +34,7 @@ app.use('/api/ingredient', authMiddleware, checkPermission('read', 'delete', 'up
 app.use('/api/size', authMiddleware, checkPermission('read', 'delete', 'update', 'add'), routerSize);
 app.use('/api/login', routerAuth);
 app.use('/api/role', authMiddleware, routerRole);
+app.use('/api/orders', orderRouter);
 
 const port = process.env.PORT || 3030;
 

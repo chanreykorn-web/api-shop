@@ -5,7 +5,7 @@ import db from "../config/conn.js";
 
 
 export const createUser = async (req, res) => {
-  const { username, password, email, role_id = 2 } = req.body;
+  const { username, password, email, role_id } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const [result] = await db.query(
@@ -32,31 +32,34 @@ export const getAllUsers = async (req, res) => {
 };
 
 export const getUserById = async (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
   try {
-    const [rows] = await db.query(
-      'SELECT id, username, email, created_at, updated_at FROM users WHERE id = ?',
-      [id]
-    );
-    if (rows.length > 0) {
-      res.json(rows[0]);
-    } else {
-      res.status(404).json({ message: 'User not found' });
+    const [rows] = await db.execute(`
+      SELECT id, username, email, role_id, status
+      FROM users
+      WHERE id = ?
+    `, [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
     }
+
+    res.json(rows[0]);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 export const updateUser = async (req, res) => {
-  const id = req.params.id;
-  const { username, password, email, status, role_id = 2 } = req.body;
+  const { id } = req.params;
+  const { username, password, email, status, role_id } = req.body;
   try {
     // Hash new password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await db.query(
-      'UPDATE users SET username = ?, password = ?, email = ?, status = ? WHERE id = ?',
+      'UPDATE users SET username = ?, password = ?, email = ?, status = ?, role_id = ? WHERE id = ?',
       [username, hashedPassword, email, status, id, role_id]
     );
 
